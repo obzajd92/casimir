@@ -1,0 +1,56 @@
+name: Inframetric Tensor Alignment & Pareto Validation
+
+on:
+  pull_request:
+    branches: [ main, master ]
+  push:
+    branches: [ main, master ]
+
+jobs:
+  matrix-ci-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Context
+        uses: actions/checkout@v4
+
+      - name: Setup Go Runtime Environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Setup Python Simulation Layer
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dissertation Script Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas matplotlib scipy scikit-learn deap
+
+      - name: Initialize Direct Workspace Targets
+        run: mkdir -p generated
+
+      - name: Execute Go Matrix Divergence Verification
+        run: go test -v matrix_verification_test.go
+
+      - name: Validate Local Verification Outputs
+        run: |
+          if [ ! -f generated/ci_performance_report.json ]; then
+            echo "🚨 Error: Go validation engine failed to yield structured JSON payload."
+            exit 1
+          fi
+
+      - name: Execute Evolutionary DEAP Cascade with Active Casimir Injection
+        run: python3 gp_casimir_engine.py
+
+      - name: Archive Validated Dissertation Artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dissertation-compiled-assets
+          path: |
+            generated/ci_performance_report.json
+            generated/pareto_front_3d_manifold.png
